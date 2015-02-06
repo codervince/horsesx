@@ -58,9 +58,9 @@ class Gear(ModelBase):
     UniqueConstraint('name', name='GearName_uidx')
 
 
-#current usage- 
-scrapy crawl horses2x -a horses=N250,P121,S054,P369,S011
+# current usage, command line
+>> scrapy crawl horses2x -a horses=N250,P121,S054,P369,S011
 
 
 # desired usage
-# call from a file which generates a list of all possible codes and builds the URL for each one
+# call from a loader which generates a list of all possible codes and builds the URL for each one
