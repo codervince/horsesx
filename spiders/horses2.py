@@ -7,7 +7,7 @@ from horsesx.items import Horses2Item
 from datetime import datetime, date
 from scrapy import log
 '''
-usage: 
+usage:
 scrapy crawl horses2 -a horses=N250,P121,S054,P369,S011
 horses=N250,P121,S054,P369,S011
 '''
@@ -47,7 +47,7 @@ class Horses2xspider(scrapy.Spider):
             horse_name = tf(response.css(".subsubheader .title_eng_text").xpath("text()").extract()).split("\xc2\xa0")[0].strip()
             meta = dict(HorseCode=horse_code,
                         HorseName=horse_name,
-                        Homecountry='HKG', 
+                        Homecountry='HKG',
                         ImportType=RE_VAL.sub("", tf(response.xpath("//font[contains(text(),'Import') and contains(text(),'Type')]/../following-sibling::td[1]/font/text()").extract())),
                         Owner=tf(response.xpath("//font[text()='Owner']/../following-sibling::td[1]/font/a/text()").extract()),
                         SireName=tf(response.xpath("//font[text()='Sire']/../following-sibling::td[1]/font/a/text()").extract()),
@@ -67,6 +67,3 @@ class Horses2xspider(scrapy.Spider):
     def start_requests(self):
         for horse in self.horses:
             yield Request(self.horse_url % horse, meta=dict(code=horse))
-
-
-
