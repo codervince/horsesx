@@ -25,7 +25,7 @@ def tf(values, encoding="utf-8"):
 
 
 #extend to include vet reports
-
+# http://www.hkjc.com/english/racing/ove_horse.asp?HorseNo=S181
 
 class Horses2xspider(scrapy.Spider):
     name = "horses2x"
@@ -34,8 +34,11 @@ class Horses2xspider(scrapy.Spider):
 
     #or get from a file
     def __init__(self, **kwargs):
+        #from command line list of horsecodes
         h_str = kwargs.pop("horses", "")
         self.horses = [h for h in [h.strip() for h in h_str.split(",")] if h]
+        #input as list
+        # self.horses = kwargs.pop("horses", "")
 
     def parse(self, response):
         horse_code = response.meta.get("code")

@@ -57,11 +57,9 @@
 		    Name = Column("name", String(255), unique=True)
 		    UniqueConstraint('name', name='GearName_uidx')
 
+### Current usage - auto generated codes
+python auto.py
 
-### Current usage, command line, one set of codes at once 
+### Previous usage, command line, one set of codes at once 
 scrapy crawl horses2x -a horses=N250,P121,S054,P369,S011
 
-
-### desired usage
-To call from a loader which generates a list of all possible codes and builds the URL for each one
- 
