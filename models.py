@@ -32,6 +32,7 @@ class Owner(Base):
 class Gear(Base):
     __table__ = Table('hk_gear', metadata, autoload=True)
 
+
 def get_engine():
     return create_engine(URL(**settings.DATABASE), pool_size=20, max_overflow=0)
     # return DBDefer(URL(**settings.DATABASE))

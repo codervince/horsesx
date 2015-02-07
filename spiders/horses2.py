@@ -23,10 +23,12 @@ def tf(values, encoding="utf-8"):
     return value.encode(encoding).strip()
 
 
-
+# videos
+#http://racing.hkjc.com/racing/video/play.asp?type=replay-full&date=20040425&no=01&lang=eng
 #extend to include vet reports
-# http://www.hkjc.com/english/racing/ove_horse.asp?HorseNo=S181
-
+# http://www.hkjc.com/english/racing/ove_horse.asp?HorseNo=A001
+#RESULTS
+#http://www.hkjc.com/english/racing/OtherHorse.asp?HorseNo=D083
 class Horses2xspider(scrapy.Spider):
     name = "horses2x"
     allowed_domains = ["hkjc.com"]

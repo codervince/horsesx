@@ -29,5 +29,5 @@ DATABASE = {'drivername': 'postgres',
             'password': '',
             'database': 'hkraces50'}
 
-
+LOG_LEVEL = 'INFO'
 USER_AGENT = "Googlebot/2.1 ( http://www.google.com/bot.html)"

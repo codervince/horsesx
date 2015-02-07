@@ -21,3 +21,11 @@ class Horses2Item(scrapy.Item):
     ImportType = scrapy.Field()
     Owner = scrapy.Field()
     Homecountry = scrapy.Field()
+
+class VetItem(scrapy.Item):
+    HorseCode = scrapy.Field()
+    HorseName = scrapy.Field()
+    Homecountry = scrapy.Field()
+    VetDate = scrapy.Field()
+    VetDetails = scrapy.Field()
+    VetPassedDate = scrapy.Field()

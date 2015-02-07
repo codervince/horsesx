@@ -9,14 +9,15 @@ from scrapy.utils.project import get_project_settings
 # from spiders.horses2 import Horses2xspider 
 #get this meetings codes
 letters = string.ascii_uppercase
+newletters = letters.replace('ABCDEFGHIJKL', '')
 digits = string.digits
 
 def main():
-	for l in letters:
+	for l in newletters:
 		horsecodes = []
 		counter = 0;
 		numcode = '001'
-		while numcode < '020':  
+		while numcode < '999':  
 			numcode = format(counter, '03')
 			horsecodes.append(l + numcode)
 			counter +=1
