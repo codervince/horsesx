@@ -26,7 +26,7 @@ def main():
 
 def runscrapy(horsecodes):
 	'''takes a list of horsecodes, runs scrapy, keeps track of urls which do not hit'''
-	misses = {}
+	# misses = {}
 	# config init
 	
 	# settings = get_project_settings()
@@ -52,9 +52,10 @@ def runscrapy(horsecodes):
 	# crawler.start()
 	#do in batches of 999
 	horsecodes= ",".join(horsecodes)
-	print horsecodes
+	# print horsecodes
 	os.system("scrapy crawl horses2x -a horses=" + horsecodes) 
-
+	#use scrapyd
+	
 #run trackwork spider
 
 if __name__ == "__main__":

@@ -217,21 +217,22 @@ class SQLAlchemyPipeline(object):
                 eventdate = item["VetDate"],
                 details = item["VetDetails"],
                 passeddate = item["VetPassedDate"],
-                horseid = horseid 
+                horseid = horseid,
+                publicraceindex = str(item["VetDate"]) + str(item["VetDetails"]) + str(horseid)
                 )
         #do vet table eventdate details passeddate
             self.scheduler.save(vetwork)
 
 
-
+            
         if isinstance(item, Horses2Item):
 
-            ownerid = self.scheduler.get_id(
-                Owner, 'name',
-                {
-                    "name": item["Owner"],
-                    "homecountry": item["Homecountry"]
-                })
+            # ownerid = self.scheduler.get_id(
+            #     Owner, 'name',
+            #     {
+            #         "name": item["Owner"],
+            #         "homecountry": item["Homecountry"]
+            #     })
 
             gearid = self.scheduler.get_id(
                 Gear, "name",
@@ -257,7 +258,7 @@ class SQLAlchemyPipeline(object):
                     "importtype": item["ImportType"]
                 })
 
-            ownerid = yield ownerid
+            # ownerid = yield ownerid
             gearid = yield gearid
             eventtypeid = yield eventtypeid
             horseid = yield horseid
@@ -266,12 +267,13 @@ class SQLAlchemyPipeline(object):
                 eventdate=item["EventDate"],
                 eventvenue=item["EventVenue"],
                 eventdescription=item["EventDescription"],
+                publicraceindex = str(item["EventDate"]) + str(eventtypeid) + str(horseid)
                 # ImportType=item["ImportType"],
                 # SireName=item["SireName"],
                 # DamName=item["DamName"],
                 # DamSireName=item["DamSireName"],
                 eventtypeid=eventtypeid,
-                ownerid=ownerid,
+                # ownerid=ownerid,
                 gearid=gearid,
                 horseid=horseid)
 

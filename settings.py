@@ -27,7 +27,7 @@ DATABASE = {'drivername': 'postgres',
             'port': '5432',
             'username': 'vmac',
             'password': '',
-            'database': 'hkraces50'}
+            'database': 'hkraces52'}
 
 LOG_LEVEL = 'INFO'
 USER_AGENT = "Googlebot/2.1 ( http://www.google.com/bot.html)"

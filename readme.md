@@ -60,6 +60,8 @@
 ### Current usage - auto generated codes
 python auto.py
 
+## Next usage
+python auto.py #scrapyd combine vet with horses2
 ### Previous usage, command line, one set of codes at once 
 scrapy crawl horses2x -a horses=N250,P121,S054,P369,S011
 
