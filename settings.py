@@ -25,9 +25,11 @@ ITEM_PIPELINES = {
 DATABASE = {'drivername': 'postgres',
             'host': 'localhost',
             'port': '5432',
-            'username': 'vmac',
-            'password': '',
-            'database': 'hkraces50'}
+            'username': 'horsesx',
+            'password': 'iu3iuWah',
+            'database': 'horsesx'}
 
 LOG_LEVEL = 'INFO'
 USER_AGENT = "Googlebot/2.1 ( http://www.google.com/bot.html)"
+
+DEBUG = True
