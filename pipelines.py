@@ -6,12 +6,13 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 from __future__ import print_function
 
-import logging
+import traceback
 from Queue import Queue, Empty
 from collections import defaultdict, Counter
 
 from horsesx.items import *
 from horsesx.models import *
+from scrapy import log
 from scrapy.signalmanager import SignalManager
 from scrapy.signals import spider_closed
 from scrapy.xlib.pydispatch import dispatcher
@@ -19,7 +20,6 @@ from sqlalchemy import update, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.sql.expression import ClauseElement
-from theseus import Tracer
 from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.internet.threads import deferToThreadPool
 from twisted.python.threadable import isInIOThread
@@ -78,18 +78,17 @@ class DBScheduler(object):
     We will have one or more read thread and only one write thread.
     '''
 
-    log = logging.getLogger('horsesx.DBScheduler')
-
-    def __init__(self):
+    def __init__(self, spider):
         from twisted.internet import reactor  # Imported here.inside
 
+        self.spider = spider
+        ''' Used for logging for now '''
+
         self.reactor = reactor
+        ''' Used for thred pools '''
 
         engine = get_engine()
         create_schema(engine)
-
-        self.tracer = Tracer()
-        self.tracer.install()
 
         self.thread_pool = ThreadPool(
             minthreads=1, maxthreads=16, name="ReadPool")
@@ -125,14 +124,10 @@ class DBScheduler(object):
         self.thread_pool.stop()
         self.write_pool.stop()
         for counter, results in self.counters.iteritems():
-            print(counter)
+            log.msg(counter)
             for modelname, count in results.iteritems():
-                print('  ', modelname.__name__, '-', count)
-
-        with open('callgrind.theseus', 'wb') as f:
-            self.tracer.write_data(f)
-
-        self.tracer.uninstall()
+                log.msg(
+                    '  {} - {}'.format(modelname.__name__, count))
 
     def _do_save(self):
         assert not isInIOThread()
@@ -153,10 +148,18 @@ class DBScheduler(object):
                 try:
                     session.add_all(items)
                     session.commit()
-                except IntegrityError:
+                except IntegrityError as error:
+                    # This is needed because we are calling from the thread
+
+                    self.spider.log(
+                        'Exception occured while saving objects: {}'.format(
+                            error), level=log.WARNING)
+
+                    self.spider.log(
+                        traceback.format_exc(), level=log.DEBUG)
+
                     session.rollback()
                     # For now return code is ignored
-                    self.log.exception('Error occured while saving items')
                 except Exception:
                     session.rollback()
                     # TODO implement saving one by one here
@@ -322,8 +325,8 @@ class DBScheduler(object):
 
 class SQLAlchemyPipeline(object):
 
-    def __init__(self):
-        self.scheduler = DBScheduler()
+    def open_spider(self, spider):
+        self.scheduler = DBScheduler(spider)
 
     @inlineCallbacks
     def process_item(self, item, spider):
