@@ -75,7 +75,7 @@ class HKTrackwork(ModelBase):
     __tablename__ = "hk_trackwork"
     __table_args__ = (
         UniqueConstraint(
-            'eventdate', 'eventdescription', 'horseid',
+            'eventdate', 'eventtypeid', 'horseid',
             name='HKTrackwork_EventDateDescrHorseId_uidx'),)
     id = Column(Integer, primary_key=True)
     eventdate = Column("eventdate", Date, nullable=False)
