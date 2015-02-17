@@ -1,0 +1,286 @@
+events: Nanoseconds
+fn=_run_command /Library/Python/2.7/site-packages/scrapy/cmdline.py
+0 0
+cfn=run /Library/Python/2.7/site-packages/scrapy/commands/crawl.py
+calls=18 0
+0 98
+
+fn=_run_print_help /Library/Python/2.7/site-packages/scrapy/cmdline.py
+0 0
+cfn=_run_command /Library/Python/2.7/site-packages/scrapy/cmdline.py
+calls=18 0
+0 98
+
+fn=execute /Library/Python/2.7/site-packages/scrapy/cmdline.py
+0 0
+cfn=_run_print_help /Library/Python/2.7/site-packages/scrapy/cmdline.py
+calls=18 0
+0 98
+
+fn=run /Library/Python/2.7/site-packages/scrapy/commands/crawl.py
+0 0
+cfn=start /Library/Python/2.7/site-packages/scrapy/crawler.py
+calls=18 0
+0 98
+
+fn=spider_opened /Library/Python/2.7/site-packages/scrapy/contrib/logstats.py
+0 0
+cfn=start /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/task.py
+calls=1 0
+0 3295
+
+fn=<lambda> /Library/Python/2.7/site-packages/scrapy/core/engine.py
+0 3
+cfn=close_spider /Library/Python/2.7/site-packages/scrapy/core/scraper.py
+calls=4 0
+0 19
+
+fn=_next_request /Library/Python/2.7/site-packages/scrapy/core/engine.py
+0 0
+cfn=_spider_idle /Library/Python/2.7/site-packages/scrapy/core/engine.py
+calls=6 0
+0 29
+
+fn=_spider_idle /Library/Python/2.7/site-packages/scrapy/core/engine.py
+0 0
+cfn=close_spider /Library/Python/2.7/site-packages/scrapy/core/engine.py
+calls=6 0
+0 29
+
+fn=close /Library/Python/2.7/site-packages/scrapy/core/engine.py
+0 7
+
+fn=close_spider /Library/Python/2.7/site-packages/scrapy/core/engine.py
+0 0
+cfn=close /Library/Python/2.7/site-packages/scrapy/core/engine.py
+calls=1 0
+0 7
+cfn=addBoth /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+calls=5 0
+0 22
+
+fn=open_spider /Library/Python/2.7/site-packages/scrapy/core/engine.py
+0 8
+cfn=open_spider /Library/Python/2.7/site-packages/scrapy/core/scraper.py
+calls=1 0
+0 6
+cfn=process_start_requests /Library/Python/2.7/site-packages/scrapy/core/spidermw.py
+calls=3 0
+0 21
+cfn=send_catch_log_deferred /Library/Python/2.7/site-packages/scrapy/signalmanager.py
+calls=3 0
+0 3306
+cfn=unwindGenerator /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+calls=3 0
+0 13
+
+fn=start /Library/Python/2.7/site-packages/scrapy/core/engine.py
+0 0
+cfn=send_catch_log_deferred /Library/Python/2.7/site-packages/scrapy/signalmanager.py
+calls=2 0
+0 10
+
+fn=_check_if_closing /Library/Python/2.7/site-packages/scrapy/core/scraper.py
+0 0
+cfn=callback /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+calls=3 0
+0 15
+
+fn=close_spider /Library/Python/2.7/site-packages/scrapy/core/scraper.py
+0 4
+cfn=_check_if_closing /Library/Python/2.7/site-packages/scrapy/core/scraper.py
+calls=3 0
+0 15
+
+fn=open_spider /Library/Python/2.7/site-packages/scrapy/core/scraper.py
+0 6
+cfn=open_spider /Library/Python/2.7/site-packages/scrapy/middleware.py
+calls=3 0
+0 13
+
+fn=process_start_requests /Library/Python/2.7/site-packages/scrapy/core/spidermw.py
+0 5
+cfn=_process_chain /Library/Python/2.7/site-packages/scrapy/middleware.py
+calls=2 0
+0 16
+
+fn=_start_crawler /Library/Python/2.7/site-packages/scrapy/crawler.py
+0 0
+cfn=unwindGenerator /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+calls=12 0
+0 69
+
+fn=start /Library/Python/2.7/site-packages/scrapy/crawler.py
+0 0
+cfn=open_spider /Library/Python/2.7/site-packages/scrapy/core/engine.py
+calls=1 0
+0 8
+cfn=start_crawling /Library/Python/2.7/site-packages/scrapy/crawler.py
+calls=12 0
+0 69
+cfn=start_reactor /Library/Python/2.7/site-packages/scrapy/crawler.py
+calls=6 0
+0 29
+cfn=maybeDeferred /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+calls=2 0
+0 10
+cfn=unwindGenerator /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+calls=9 0
+0 51
+
+fn=start_crawling /Library/Python/2.7/site-packages/scrapy/crawler.py
+0 0
+cfn=_start_crawler /Library/Python/2.7/site-packages/scrapy/crawler.py
+calls=12 0
+0 69
+
+fn=start_reactor /Library/Python/2.7/site-packages/scrapy/crawler.py
+0 0
+cfn=run /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/base.py
+calls=6 0
+0 29
+
+fn=_process_chain /Library/Python/2.7/site-packages/scrapy/middleware.py
+0 5
+cfn=process_chain /Library/Python/2.7/site-packages/scrapy/utils/defer.py
+calls=1 0
+0 11
+
+fn=_process_parallel /Library/Python/2.7/site-packages/scrapy/middleware.py
+0 10
+cfn=process_parallel /Library/Python/2.7/site-packages/scrapy/utils/defer.py
+calls=2 0
+0 10
+
+fn=close_spider /Library/Python/2.7/site-packages/scrapy/middleware.py
+0 5
+cfn=_process_parallel /Library/Python/2.7/site-packages/scrapy/middleware.py
+calls=2 0
+0 10
+
+fn=open_spider /Library/Python/2.7/site-packages/scrapy/middleware.py
+0 3
+cfn=_process_parallel /Library/Python/2.7/site-packages/scrapy/middleware.py
+calls=2 0
+0 10
+
+fn=send_catch_log_deferred /Library/Python/2.7/site-packages/scrapy/signalmanager.py
+0 10
+cfn=send_catch_log_deferred /Library/Python/2.7/site-packages/scrapy/utils/signal.py
+calls=3 0
+0 3306
+
+fn=process_chain /Library/Python/2.7/site-packages/scrapy/utils/defer.py
+0 11
+
+fn=process_parallel /Library/Python/2.7/site-packages/scrapy/utils/defer.py
+0 10
+
+fn=__call__ /Library/Python/2.7/site-packages/scrapy/utils/reactor.py
+0 0
+cfn=_next_request /Library/Python/2.7/site-packages/scrapy/core/engine.py
+calls=6 0
+0 29
+
+fn=send_catch_log_deferred /Library/Python/2.7/site-packages/scrapy/utils/signal.py
+0 11
+cfn=maybeDeferred /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+calls=1 0
+0 3295
+
+fn=robustApply /Library/Python/2.7/site-packages/scrapy/xlib/pydispatch/robustapply.py
+0 0
+cfn=spider_opened /Library/Python/2.7/site-packages/scrapy/contrib/logstats.py
+calls=1 0
+0 3295
+
+fn=mainLoop /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/base.py
+0 0
+cfn=runUntilCurrent /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/base.py
+calls=6 0
+0 29
+
+fn=run /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/base.py
+0 0
+cfn=mainLoop /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/base.py
+calls=6 0
+0 29
+
+fn=runUntilCurrent /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/base.py
+0 0
+cfn=__call__ /Library/Python/2.7/site-packages/scrapy/utils/reactor.py
+calls=6 0
+0 29
+
+fn=_inlineCallbacks /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+0 0
+cfn=open_spider /Library/Python/2.7/site-packages/scrapy/core/engine.py
+calls=9 0
+0 51
+cfn=start /Library/Python/2.7/site-packages/scrapy/core/engine.py
+calls=2 0
+0 10
+cfn=open_spider /Library/Python/2.7/site-packages/scrapy/core/scraper.py
+calls=3 0
+0 13
+cfn=start /Library/Python/2.7/site-packages/scrapy/crawler.py
+calls=12 0
+0 69
+
+fn=_runCallbacks /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+0 0
+cfn=<lambda> /Library/Python/2.7/site-packages/scrapy/core/engine.py
+calls=5 0
+0 22
+cfn=close_spider /Library/Python/2.7/site-packages/scrapy/middleware.py
+calls=3 0
+0 15
+
+fn=_startRunCallbacks /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+0 0
+cfn=_runCallbacks /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+calls=3 0
+0 15
+
+fn=addBoth /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+0 0
+cfn=addCallbacks /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+calls=5 0
+0 22
+
+fn=addCallbacks /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+0 0
+cfn=_runCallbacks /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+calls=5 0
+0 22
+
+fn=callback /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+0 0
+cfn=_startRunCallbacks /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+calls=3 0
+0 15
+
+fn=maybeDeferred /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+0 0
+cfn=robustApply /Library/Python/2.7/site-packages/scrapy/xlib/pydispatch/robustapply.py
+calls=1 0
+0 3295
+cfn=unwindGenerator /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+calls=2 0
+0 10
+
+fn=unwindGenerator /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+0 0
+cfn=_inlineCallbacks /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/defer.py
+calls=26 0
+0 143
+
+fn=start /System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/twisted/internet/task.py
+0 3295
+
+fn=<module> /usr/local/bin/scrapy
+0 0
+cfn=execute /Library/Python/2.7/site-packages/scrapy/cmdline.py
+calls=18 0
+0 98
+
