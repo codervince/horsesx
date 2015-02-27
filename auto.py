@@ -40,6 +40,7 @@ def runscrapy(horsecodes):
 	# print horsecodes
 	# os.system("scrapy crawl horses2x -a horse='P222'")
 	os.system("curl http://localhost:6802/schedule.json -d project=horsesx -d spider=horses2x -d setting=DOWNLOAD_DELAY=2 -d horses=" + horsecodes + "")
+	os.system("curl http://localhost:6802/schedule.json -d project=horsesx -d spider=vet -d setting=DOWNLOAD_DELAY=2 -d horses=" + horsecodes + "")
 	# os.system("scrapy crawl horses2x -a horses=" + horsecodes) 
 	#use scrapyd
 

@@ -10,6 +10,7 @@ import traceback
 from Queue import Queue, Empty
 from collections import defaultdict, Counter
 
+from horsesx import settings
 from horsesx.items import *
 from horsesx.models import *
 from scrapy import log
@@ -24,10 +25,52 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.internet.threads import deferToThreadPool
 from twisted.python.threadable import isInIOThread
 from twisted.python.threadpool import ThreadPool
-
+from StringIO import StringIO
 
 # Needed for multithreading, as I remember
 Session = scoped_session(sessionmaker(bind=engine))
+from theseus import Tracer
+
+# if settings.DEBUG:
+#     engine.echo = True
+
+
+def dicthash(inp):
+    return tuple(sorted(inp.iteritems(), key=lambda item: item[0]))
+
+
+def row2dict(row):
+
+    if isinstance(row, dict):
+        return row
+
+    d = {}
+    for column in row.__table__.columns:
+        d[column.name] = str(getattr(row, column.name))
+
+    return d
+
+
+class ProfiledThreadPool(ThreadPool):
+
+    @staticmethod
+    def output_callgrind(out):
+        with open('callgrind.theseus', 'ab') as f:
+            f.write(out)
+
+    def _worker(self):
+        from twisted.internet import reactor
+        tracer = Tracer()
+        tracer.install()
+        ThreadPool._worker(self)
+
+        out = StringIO()
+
+        tracer.write_data(out)
+
+        reactor.callFromThread(self.output_callgrind, out.getvalue())
+        out.close()
+        tracer.uninstall()
 
 
 def get_or_create(model, defaults=None, **kwargs):
@@ -73,6 +116,76 @@ def get_or_create(model, defaults=None, **kwargs):
     return instance, created
 
 
+class Reporter(object):
+
+    def __init__(self):
+        self.counters = defaultdict(lambda: Counter())
+        ''' Statistical counters. You may access them directly if needed '''
+
+        self.id_counters = defaultdict(
+            lambda: defaultdict(
+                lambda: set()))
+        ''' More complex counter used storing item keys '''
+
+        self._created = defaultdict(lambda: list())
+        ''' All created items by type '''
+
+        self._updated = defaultdict(lambda: list())
+        ''' All updated items. Should be list of tuples '''
+
+    def saved(self, model, item_id):
+        self.id_counters['created'][model].add(item_id)
+
+    def updated(self, model, item_id, item, old_item):
+        self.id_counters['updated'][model].add(item_id)
+        self._updated[model].append((item_id, item, old_item))
+
+    def unchanged(self, model, item_id):
+        self.id_counters['unchanged'][model].add(item_id)
+
+    def get_report(self):
+        out = StringIO()
+
+        print('========== Spider report ==========', file=out)
+        print(file=out)
+        print('---------- Counters ---------------', file=out)
+
+        for counter, results in self.counters.iteritems():
+            print(counter, file=out)
+            for modelname, count in results.iteritems():
+                print('  {} - {}'.format(modelname.__name__, count), file=out)
+
+        for counter, results in self.id_counters.iteritems():
+            print(counter, file=out)
+            for modelname, items in results.iteritems():
+                print('  {} - {}'.format(
+                    modelname.__name__, len(items)), file=out)
+
+        print('---------- Updated objects --------', file=out)
+        print(file=out)
+
+        for counter, items in self._updated.iteritems():
+            print(str(counter), file=out)
+
+            items = sorted(items)
+
+            for item_id, new, old in items:
+                print('-----------------------------------', file=out)
+                print(item_id, file=out)
+                old = row2dict(old)
+                for key, value in row2dict(new).iteritems():
+                    old_value = old.get(key)
+
+                    if str(old_value) != str(value):
+                        print('{}: {} to {}'.format(
+                            key, old_value, value), file=out)
+
+        result = out.getvalue()
+        out.close()
+
+        return result
+
+
 class DBScheduler(object):
     ''' Database operation scheduler
     We will have one or more read thread and only one write thread.
@@ -91,11 +204,11 @@ class DBScheduler(object):
         create_schema(engine)
 
         self.thread_pool = ThreadPool(
-            minthreads=1, maxthreads=16, name="ReadPool")
+            minthreads=1, maxthreads=13, name="ReadPool")
 
         # There should be only one pool in the write_pool
         # Never increase maxtreads value
-        self.write_pool = ThreadPool(
+        self.write_pool = ProfiledThreadPool(
             minthreads=1, maxthreads=1, name="WritePool")
 
         self.thread_pool.start()
@@ -104,7 +217,9 @@ class DBScheduler(object):
         self.signals = SignalManager(dispatcher.Any).connect(
             self.stop_threadpools, spider_closed)
 
-        self.counters = defaultdict(lambda: Counter())
+        self.reporter = Reporter()
+        ''' Reporer is used for statistics collection '''
+        self.counters = self.reporter.counters
 
         self.cache = defaultdict(
             lambda: dict())
@@ -112,22 +227,32 @@ class DBScheduler(object):
         self.write_queue = Queue()
         self.writelock = False  # Write queue mutex
 
-        self.managed_save_queue = Queue()
-        self.managed_save_lock = False  # Write queue mutex
-
-        # Same as write queue. But for upsert
-        # This is not as fast as simple save
-        self.upsert_queue = Queue()
-        self.upsertlock = False
-
     def stop_threadpools(self):
         self.thread_pool.stop()
         self.write_pool.stop()
-        for counter, results in self.counters.iteritems():
-            log.msg(counter)
-            for modelname, count in results.iteritems():
-                log.msg(
-                    '  {} - {}'.format(modelname.__name__, count))
+
+        for line in self.reporter.get_report().splitlines():
+            log.msg(line)
+
+    def _do_save_item(self, item):
+        ''' Save items one by one '''
+        assert not isInIOThread()
+
+        session = Session()
+
+        session.add(item)
+
+        try:
+            session.commit()
+            self.reporter.saved(item.__class__, item)
+            result = True
+        except IntegrityError as error:
+            session.rollback()
+            result = False
+        finally:
+            session.close()
+
+        return result
 
     def _do_save(self):
         assert not isInIOThread()
@@ -148,6 +273,13 @@ class DBScheduler(object):
                 try:
                     session.add_all(items)
                     session.commit()
+
+                    # All items were unique.
+                    # All of them are counted
+
+                    for item in items:
+                        self.reporter.saved(item.__class__, item)
+
                 except IntegrityError as error:
                     # This is needed because we are calling from the thread
 
@@ -159,11 +291,15 @@ class DBScheduler(object):
                         traceback.format_exc(), level=log.DEBUG)
 
                     session.rollback()
-                    # For now return code is ignored
+
+                    self.spider.log(
+                        'Saving {} items one by one'.format(len(items)))
+
+                    for item in items:
+                        # Saving items one by one
+                        self._do_save_item(item)
                 except Exception:
                     session.rollback()
-                    # TODO implement saving one by one here
-                    # to save as much as possible
                     raise
                 finally:
                     session.close()
@@ -227,10 +363,27 @@ class DBScheduler(object):
 
         return result.rowcount
 
-        
-        return deferToThreadPool(
-            self.reactor, self.thread_pool,
-            self._do_update_if_changed, model, selector, updated)
+    @inlineCallbacks
+    def update_if_changed(self, model, selector, updated):
+        result = 0
+
+        item = dict(selector)
+        item.update(updated)
+
+        old_item = yield self.get_changed(model, selector, updated)
+
+        if old_item is not None:
+            result = yield deferToThreadPool(
+                self.reactor, self.thread_pool,
+                self._do_update_if_changed, model, selector, updated)
+
+            if result:
+                self.reporter.updated(
+                    model, dicthash(selector), item, old_item)
+        else:
+            self.reporter.unchanged(model, dicthash(selector))
+
+        returnValue(result)
 
     def _do_update(self, model, selector, updated):
         assert not isInIOThread()
@@ -246,7 +399,7 @@ class DBScheduler(object):
         finally:
             session.close()
 
-        return result.rowcount
+        return result
 
     def update(self, model, selector, updated):
         ''' Update model matching some *selector* dict and
@@ -263,7 +416,14 @@ class DBScheduler(object):
             self._do_update, model, selector, updated)
 
     def _do_exists(self, model, selector):
-        return bool(Session().query(model.id).filter_by(**selector).scalar())
+        session = Session()
+
+        try:
+            result = bool(
+                session.query(model.id).filter_by(**selector).scalar())
+            return result
+        finally:
+            session.close()
 
     def exists(self, model, selector):
         ''' Check whether object matching selector exists '''
@@ -271,14 +431,68 @@ class DBScheduler(object):
             self.reactor, self.thread_pool,
             self._do_exists, model, selector)
 
+    def _do_is_changed(self, model, selector, updated):
+        session = Session()
+
+        result_query = session.query(model.id).filter(**selector)
+
+        result_query = result_query.filter(
+            reduce(or_, [getattr(model, field) != value
+                         for field, value in updated.iteritems()]))
+
+        try:
+            result = bool(result_query.scalar())
+        finally:
+            session.close()
+
+        return result
+
+    def is_changed(self, model, selector, updated):
+        ''' Check whether model fields are changed '''
+        return deferToThreadPool(
+            self.reactor, self.thread_pool,
+            self._do_is_changed, model, selector, updated)
+
+    def _do_get_changed(self, model, selector, updated):
+        session = Session()
+
+        query = session.query(model).filter_by(**selector)
+
+        query = query.filter(
+            reduce(or_, [getattr(model, field) != value
+                         for field, value in updated.iteritems()]))
+
+        try:
+            item = query.first()
+
+            if item is not None:
+                item = row2dict(item)
+
+            return item
+        finally:
+            session.close()
+
+    def get_changed(self, model, selector, updated):
+        ''' Return model if it's changed and None if it's unchanged '''
+        return deferToThreadPool(
+            self.reactor, self.thread_pool,
+            self._do_get_changed, model, selector, updated)
+
     def _do_get_id(self, model, unique, fval, fields):
         assert not isInIOThread()
 
-        return Session().query(model).filter(
-            getattr(model, unique) == fval).one().id
+        session = Session()
+
+        try:
+            result = session.query(model.id).filter(
+                getattr(model, unique) == fval).one().id
+            return result
+        finally:
+            session.close()
 
     @inlineCallbacks
-    def get_id(self, model, unique, fields, update_existing=False):
+    def get_id(self, model, unique, fields,
+               update_existing=False):
         ''' Get an ID from the cache or from the database.
         If doesn't exist - create an item.
         All database operations are done from
@@ -292,10 +506,10 @@ class DBScheduler(object):
 
         try:
             result = self.cache[model][fval]
-            self.counters['hit'][model] += 1
+            self.counters['cache.hit'][model] += 1
             returnValue(result)
         except KeyError:
-            self.counters['miss'][model] += 1
+            self.counters['cache.miss'][model] += 1
 
         selectors = {unique: fval}
 
@@ -304,20 +518,15 @@ class DBScheduler(object):
             get_or_create,
             model, fields, **selectors)
 
-        result = result.id
-
         if created:
-            self.counters['db_create'][model] += 1
+            self.reporter.saved(model, result)
         else:
-            self.counters['db_hit'][model] += 1
+            self.counters['db.cache.hit'][model] += 1
             if update_existing:
-                updated = yield self.update_if_changed(
+                yield self.update_if_changed(
                     model, {unique: fval}, fields)
 
-                if updated:
-                    self.counters['updated'][model] += 1
-                else:
-                    self.counters['unchanged'][model] += 1
+        result = result.id
 
         self.cache[model][fval] = result
         returnValue(result)
@@ -380,7 +589,9 @@ class SQLAlchemyPipeline(object):
                     "sirename": item["SireName"],
                     "damname": item["DamName"],
                     "damsirename": item["DamSireName"],
-                    "importtype": item["ImportType"]
+                    "importtype": item["ImportType"],
+                    "countryoforigin": item["CountryofOrigin"],
+                    "yearofbirth": item["YearofBirth"]
                 }, update_existing=True)
 
             ownerid = yield ownerid
@@ -392,42 +603,47 @@ class SQLAlchemyPipeline(object):
                 eventdate=item["EventDate"],
                 eventvenue=item["EventVenue"],
                 eventdescription=item["EventDescription"],
-                publicraceindex = item["EventDate"].strftime("%Y%m%d")+ " " + str(horseid) + " " + str(eventtypeid),
+                # ImportType=item["ImportType"],
+                # SireName=item["SireName"],
+                # DamName=item["DamName"],
+                # DamSireName=item["DamSireName"],
                 eventtypeid=eventtypeid,
+                ownerid=ownerid,
                 gearid=gearid,
                 horseid=horseid)
-            #model selector
+
             exists = yield self.scheduler.exists(
                 HKTrackwork,
                 {
-                    "publicraceindex": item["EventDate"].strftime("%Y%m%d")+ " " + str(horseid) + " " + str(eventtypeid)
-                    # 'eventdate': item["EventDate"],
-                    # 'eventdescription': item["EventDescription"],
-                    # 'horseid': horseid
+                    'eventdate': item["EventDate"],
+                    'eventdescription': item["EventDescription"],
+                    'horseid': horseid
                 })
-            #model selector updated
+
             if exists:
+                # Consider not to update this record.
+                # There are a lot of them
+                # If you really need this -
+                # Query merging will be needed.
+                # It's not very easy to implement
+                # as i remember.
+
+                # So if you don't need to update "Trackwork"
+                # object - don't update it. Just add new items.
                 res = yield self.scheduler.update_if_changed(
                     HKTrackwork,
                     {
-                        # 'eventdate': item["EventDate"],
-                        # 'eventdescription': item['EventDescription'],
-                        "publicraceindex": item["EventDate"].strftime("%Y%m%d")+ " " + str(horseid) + " " + str(eventtypeid),
-                        # 'horseid': horseid
+                        'eventdate': item["EventDate"],
+                        'eventtypeid': eventtypeid,
+                        'horseid': horseid
                     },
                     {
-                        'eventtypeid': eventtypeid,
+                        'ownerid': ownerid,
                         'gearid': gearid,
-                        'eventvenue': item['EventVenue']
-
+                        'eventvenue': item['EventVenue'],
+                        'eventdescription': item['EventDescription'],
                     })
-
-                if res:
-                    self.scheduler.counters['updated'][HKTrackwork] += 1
-                else:
-                    self.scheduler.counters['unchanged'][HKTrackwork] += 1
             else:
                 self.scheduler.save(trackwork)
-                self.scheduler.counters['create'][HKTrackwork] += 1
 
         returnValue(item)

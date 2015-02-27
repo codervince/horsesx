@@ -5,6 +5,7 @@ from scrapy.contrib.loader.processor import TakeFirst
 import re
 from horsesx.items import Horses2Item
 from datetime import datetime, date
+from dateutil.relativedelta import relativedelta
 from scrapy import log
 '''
 usage: 
@@ -50,9 +51,15 @@ class Horses2xspider(scrapy.Spider):
             # videos http://www.hkjc.com/english/racing/horse.asp?HorseNo=N250&Option=1#htop
             #horsecolors http://www.hkjc.com/images/RaceColor/N250.gif 30 * 38
             horse_name = tf(response.css(".subsubheader .title_eng_text").xpath("text()").extract()).split("\xc2\xa0")[0].strip()
+            age = RE_VAL.sub("", tf(response.xpath("//font[contains(text(),'Country') and contains(text(),'Origin')]/../following-sibling::td[1]/font/text()").extract())).split("/")[1]
+            yearofbirth = datetime.today() - relativedelta(years=int(age.strip()))
+
+
             meta = dict(HorseCode=horse_code,
                         HorseName=horse_name,
-                        Homecountry='HKG', 
+                        Homecountry='HKG',
+                        YearofBirth= yearofbirth,
+                        CountryofOrigin= RE_VAL.sub("", tf(response.xpath("//font[contains(text(),'Country') and contains(text(),'Origin')]/../following-sibling::td[1]/font/text()").extract())).split("/")[0].strip(), 
                         ImportType=RE_VAL.sub("", tf(response.xpath("//font[contains(text(),'Import') and contains(text(),'Type')]/../following-sibling::td[1]/font/text()").extract())),
                         Owner=tf(response.xpath("//font[text()='Owner']/../following-sibling::td[1]/font/a/text()").extract()),
                         SireName=tf(response.xpath("//font[text()='Sire']/../following-sibling::td[1]/font/a/text()").extract()),
